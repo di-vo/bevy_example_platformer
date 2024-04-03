@@ -127,8 +127,8 @@ pub struct PlayerBundle {
     pub climber: Climber,
     pub ground_detection: GroundDetection,
 
-    #[from_entity_instance]
-    items: Items,
+    //#[from_entity_instance]
+    //items: Items,
     #[from_entity_instance]
     entity_instance: EntityInstance,
 }
