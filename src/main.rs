@@ -1,4 +1,4 @@
-use bevy::{prelude::*, render::{settings::{Backends, RenderCreation, WgpuSettings}, RenderPlugin}, utils::HashSet};
+use bevy::{prelude::*, render::{settings::{Backends, RenderCreation, WgpuSettings}, RenderPlugin}};
 use bevy_ecs_ldtk::prelude::*;
 
 use bevy_rapier2d::prelude::*;
@@ -13,6 +13,9 @@ fn main() {
             LdtkPlugin,
             RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0),
         ))
+        .insert_resource(LevelSelection::index(0))
+        .register_ldtk_entity::<components::PlayerBundle>("Player")
+        .register_ldtk_entity::<components::GoalBundle>("Goal")
         .add_systems(Startup, systems::setup)
         .run();
 }
