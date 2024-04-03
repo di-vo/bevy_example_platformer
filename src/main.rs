@@ -12,9 +12,9 @@ fn main() {
             BasePlugin,
             LdtkPlugin,
             RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0),
-            RapierDebugRenderPlugin::default(),
+            //RapierDebugRenderPlugin::default(),
         ))
-        .insert_resource(LevelSelection::index(1))
+        .insert_resource(LevelSelection::index(0))
         .insert_resource(RapierConfiguration {
             gravity: Vec2::new(0.0, -2000.0),
             ..default()
@@ -47,6 +47,7 @@ fn main() {
             systems::camera_fit_inside_current_level,
             systems::respawn_world,
             systems::patrol,
+            systems::flip_sprite,
         ))
         .run();
 }
