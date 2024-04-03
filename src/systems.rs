@@ -63,6 +63,23 @@ pub fn movement(
     }
 }
 
+pub fn flip_sprite(
+    input: Res<Input<KeyCode>>,
+    mut query: Query<&mut TextureAtlasSprite, With<Player>>,
+) {
+    if input.just_pressed(KeyCode::A) {
+        for mut transform in &mut query {
+            transform.flip_x = true;
+        } 
+    }
+
+    if input.just_pressed(KeyCode::D) {
+        for mut transform in &mut query {
+            transform.flip_x = false;
+        } 
+    }
+}
+
 /// Spawns heron collisions for the walls of a level
 ///
 /// You could just insert a ColliderBundle in to the WallBundle,
