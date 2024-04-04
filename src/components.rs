@@ -112,6 +112,22 @@ pub struct GroundSensor {
     pub intersecting_ground_entities: HashSet<Entity>,
 }
 
+#[derive(Default, Component)]
+pub enum PlayerDirection {
+    #[default]
+    Right,
+    Left,
+}
+
+#[derive(Default, Component, Eq, PartialEq)]
+pub enum PlayerState {
+    #[default]
+    Idle,
+    Jumping,
+    Falling,
+    Moving,
+}
+
 #[derive(Default, Component, Copy, Clone, Eq, PartialEq, Debug)]
 pub struct Player;
 
@@ -126,6 +142,8 @@ pub struct PlayerBundle {
     pub wordly: Worldly,
     pub climber: Climber,
     pub ground_detection: GroundDetection,
+    pub direction: PlayerDirection,
+    pub state: PlayerState,
 
     #[from_entity_instance]
     items: Items,
