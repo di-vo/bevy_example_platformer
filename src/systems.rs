@@ -63,20 +63,75 @@ pub fn movement(
     }
 }
 
-pub fn flip_sprite(
+pub fn direction_machine(
     input: Res<Input<KeyCode>>,
-    mut query: Query<&mut TextureAtlasSprite, With<Player>>,
+    mut query: Query<&mut PlayerDirection, With<Player>>,
 ) {
-    if input.just_pressed(KeyCode::A) {
-        for mut transform in &mut query {
-            transform.flip_x = true;
+    for mut direction in &mut query {
+        // moving left
+        if input.just_pressed(KeyCode::A) {
+            *direction = PlayerDirection::Left;
+        }
+
+        // moving right
+        if input.just_pressed(KeyCode::D) {
+            *direction = PlayerDirection::Right;
         } 
     }
+}
 
-    if input.just_pressed(KeyCode::D) {
-        for mut transform in &mut query {
-            transform.flip_x = false;
-        } 
+pub fn flip_sprite(
+    mut query: Query<(&PlayerDirection, &mut TextureAtlasSprite), (With<Player>, Changed<PlayerDirection>)>,
+) {
+    for (direction, mut sprite) in &mut query {
+        match direction {
+            PlayerDirection::Left => {
+                sprite.flip_x = true;
+            }
+            PlayerDirection::Right => {
+                sprite.flip_x = false;
+            }
+        }
+    }
+}
+
+pub fn state_machine(
+    input: Res<Input<KeyCode>>,
+    mut query: Query<(&mut PlayerState, &Velocity, &GroundDetection), With<Player>>,
+) {
+    for (mut state, velocity, ground) in &mut query {
+        if input.just_pressed(KeyCode::Space) && ground.on_ground {
+            *state = PlayerState::Jumping;
+        } else if !ground.on_ground && velocity.linvel.y < 0.0 && !state.eq(&PlayerState::Falling) {
+            *state = PlayerState::Falling;
+        } else if velocity.linvel.x != 0.0 && !state.eq(&PlayerState::Moving) {
+            *state = PlayerState::Moving;
+            } else if ground.on_ground && velocity.linvel.x == 0.0 && !state.eq(&PlayerState::Idle) {
+            *state = PlayerState::Idle;
+        }
+    }
+}
+
+pub fn animation_machine(
+    mut query: Query<(&PlayerState, &mut TextureAtlasSprite), (With<Player>, Changed<PlayerState>)>,
+) {
+    for (state, mut sprite) in &mut query {
+        match state {
+            PlayerState::Jumping => {
+                println!("jumping");
+                sprite.flip_y = true;
+            }
+            PlayerState::Falling => {
+                println!("falling");
+                sprite.flip_y = false;
+            }
+            PlayerState::Idle => {
+                println!("idling");
+            }
+            PlayerState::Moving => {
+                println!("moving");
+            }
+        }
     }
 }
 

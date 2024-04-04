@@ -47,7 +47,10 @@ fn main() {
             systems::camera_fit_inside_current_level,
             systems::respawn_world,
             systems::patrol,
+            systems::direction_machine,
             systems::flip_sprite,
+            systems::state_machine,
+            systems::animation_machine,
         ))
         .run();
 }
