@@ -97,40 +97,96 @@ pub fn flip_sprite(
 
 pub fn state_machine(
     input: Res<Input<KeyCode>>,
-    mut query: Query<(&mut PlayerState, &Velocity, &GroundDetection), With<Player>>,
+    mut query: Query<(&mut PlayerState, &Velocity, &GroundDetection, &Climber), With<Player>>,
 ) {
-    for (mut state, velocity, ground) in &mut query {
-        if input.just_pressed(KeyCode::Space) && ground.on_ground {
+    for (mut state, velocity, ground, climber) in &mut query {
+        if input.just_pressed(KeyCode::Space) && (ground.on_ground || climber.climbing) {
             *state = PlayerState::Jumping;
-        } else if !ground.on_ground && velocity.linvel.y < 0.0 && !state.eq(&PlayerState::Falling) {
+        } else if !ground.on_ground && velocity.linvel.y < 0.0 && !state.eq(&PlayerState::Falling) && !state.eq(&PlayerState::Climbing) {
             *state = PlayerState::Falling;
-        } else if velocity.linvel.x != 0.0 && !state.eq(&PlayerState::Moving) {
+        } else if ground.on_ground && velocity.linvel.x != 0.0 && !state.eq(&PlayerState::Moving) {
             *state = PlayerState::Moving;
-            } else if ground.on_ground && velocity.linvel.x == 0.0 && !state.eq(&PlayerState::Idle) {
+        } else if ground.on_ground && velocity.linvel.x == 0.0 && velocity.linvel.y >= -0.1 && velocity.linvel.y <= 0.01 && !state.eq(&PlayerState::Idle) {
             *state = PlayerState::Idle;
+        } else if climber.climbing && !state.eq(&PlayerState::Climbing) {
+            *state = PlayerState::Climbing;
         }
     }
 }
 
 pub fn animation_machine(
-    mut query: Query<(&PlayerState, &mut TextureAtlasSprite), (With<Player>, Changed<PlayerState>)>,
+    mut atlases: ResMut<Assets<TextureAtlas>>,
+    mut query: Query<(&PlayerState, &mut Handle<TextureAtlas>, &mut AnimationIndices, &mut AnimationTimer, &mut TextureAtlasSprite), (With<Player>, Changed<PlayerState>)>,
+    asset_server: Res<AssetServer>,
 ) {
-    for (state, mut sprite) in &mut query {
+    for (state, mut atlas, mut indices, mut timer, mut sprite) in &mut query {        
+        timer.timer = Timer::from_seconds(0.1, TimerMode::Repeating);
+
+        let rows = 1;
+        let cols: usize;
+        let offset: Option<Vec2>;
+
         match state {
             PlayerState::Jumping => {
+                cols = 2;
+                indices.first = 0;
+                indices.last = 0;
+                offset = Some(Vec2::from_array([0.0, 160.0]));
                 println!("jumping");
-                sprite.flip_y = true;
             }
             PlayerState::Falling => {
+                cols = 2;
+                indices.first = 1;
+                indices.last = 1;
+                offset = Some(Vec2::from_array([0.0, 160.0]));
                 println!("falling");
-                sprite.flip_y = false;
             }
             PlayerState::Idle => {
+                cols = 4;
+                indices.first = 0;
+                indices.last = 3;
+                offset = None;
                 println!("idling");
             }
             PlayerState::Moving => {
+                cols = 6;
+                indices.first = 0;
+                indices.last = 5;
+                offset = Some(Vec2::from_array([0.0, 32.0]));
                 println!("moving");
             }
+            PlayerState::Climbing => {
+                cols = 4;
+                indices.first = 0;
+                indices.last = 3;
+                offset = Some(Vec2::from_array([0.0, 64.0]));
+                println!("climbing");
+            }
+        }
+
+        sprite.index = indices.first;
+
+        let image_handle = asset_server.load("Packs/Sunnyland/spritesheets/player.png");
+        let layout = TextureAtlas::from_grid(image_handle, Vec2::from_array([32.0, 32.0]), cols, rows, None, offset);
+
+        let atlas_handle = atlases.add(layout);
+        *atlas = atlas_handle;
+    }
+}
+
+pub fn animate_sprite(
+    time: Res<Time>,
+    mut query: Query<(&AnimationIndices, &mut AnimationTimer, &mut TextureAtlasSprite), With<Player>>,
+) {
+    for (indices, mut timer, mut sprite) in &mut query {
+        timer.tick(time.delta());
+
+        if timer.just_finished() {
+            sprite.index = if sprite.index == indices.last {
+                indices.first
+            } else {
+                sprite.index + 1
+            };
         }
     }
 }

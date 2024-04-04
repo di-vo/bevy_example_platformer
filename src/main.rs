@@ -51,6 +51,7 @@ fn main() {
             systems::flip_sprite,
             systems::state_machine,
             systems::animation_machine,
+            systems::animate_sprite,
         ))
         .run();
 }

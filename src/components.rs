@@ -126,6 +126,18 @@ pub enum PlayerState {
     Jumping,
     Falling,
     Moving,
+    Climbing,
+}
+
+#[derive(Default, Component)]
+pub struct AnimationIndices {
+    pub first: usize,
+    pub last: usize,
+}
+
+#[derive(Default, Component, Deref, DerefMut)]
+pub struct AnimationTimer {
+    pub timer: Timer,
 }
 
 #[derive(Default, Component, Copy, Clone, Eq, PartialEq, Debug)]
@@ -144,6 +156,8 @@ pub struct PlayerBundle {
     pub ground_detection: GroundDetection,
     pub direction: PlayerDirection,
     pub state: PlayerState,
+    pub animation_indices: AnimationIndices,
+    pub animation_timer: AnimationTimer,
 
     #[from_entity_instance]
     items: Items,
