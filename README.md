@@ -1,2 +1,2 @@
 # bevy__example_platformer
-An example 2d platformer built with Bevy.
+An (unfinished) example 2d platformer built with Bevy.
